@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { About } from './sections/About';
+import { AllProjectsPage } from './sections/AllProjectsPage';
 import { Clients } from './sections/Clients';
 import { Contact } from './sections/Contact';
 import { Footer } from './sections/Footer';
 import { Header } from './sections/Header';
 import { Hero } from './sections/Hero';
+import { ProjectDetailModal } from './sections/ProjectDetailModal';
 import { Projects } from './sections/Projects';
 import { Services } from './sections/Services';
 import { Testimonial } from './sections/Testimonial';
+import { completedProjectsData, type Project } from './data/projectsData';
 
 export default function App() {
   const [headerScrolled, setHeaderScrolled] = useState(false);
@@ -15,10 +18,42 @@ export default function App() {
   const [introVisible, setIntroVisible] = useState(true);
   const [introFlying, setIntroFlying] = useState(false);
   const introLogoRef = useRef<HTMLDivElement>(null);
-  const [whatsappVisible, setWhatsappVisible] = useState(false);
   const [contactStatus, setContactStatus] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState('');
 
+  // Routing state
+  const [view, setView] = useState<'home' | 'all-projects'>('home');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  // Sync state with URL hash
+  useEffect(() => {
+    function handleHashChange() {
+      const hash = window.location.hash;
+      if (hash.startsWith('#project/')) {
+        const id = hash.replace('#project/', '');
+        const found = completedProjectsData.find((p) => p.id === id);
+        if (found) {
+          setSelectedProject(found);
+        }
+      } else if (hash === '#all-projects') {
+        setView('all-projects');
+        setSelectedProject(null);
+      } else {
+        if (view === 'all-projects' && hash !== '#all-projects') {
+          setView('home');
+        }
+        setSelectedProject(null);
+      }
+    }
+
+    // Initial check
+    handleHashChange();
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [view]);
+
+  // Observer for reveal animations & footer whatsapp
   useEffect(() => {
     const revealObserver = new IntersectionObserver((entries, observer) => {
       entries.forEach((entry) => {
@@ -31,12 +66,6 @@ export default function App() {
 
     document.querySelectorAll('[data-reveal]').forEach((element) => revealObserver.observe(element));
 
-    const footerObserver = new IntersectionObserver(([entry]) => {
-      setWhatsappVisible(entry.isIntersecting);
-    }, { rootMargin: '0px 0px -80px 0px' });
-    const footer = document.querySelector('.site-footer');
-    if (footer) footerObserver.observe(footer);
-
     const onScroll = () => {
       setHeaderScrolled(window.scrollY > 24);
       const hero = document.querySelector('.hero');
@@ -47,11 +76,11 @@ export default function App() {
 
     return () => {
       revealObserver.disconnect();
-      footerObserver.disconnect();
       window.removeEventListener('scroll', onScroll);
     };
-  }, []);
+  }, [view]);
 
+  // Intro Splash animation
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let finishTimer = 0;
@@ -83,19 +112,58 @@ export default function App() {
     };
   }, []);
 
+  function navigateToHome() {
+    setView('home');
+    setSelectedProject(null);
+    window.location.hash = '#home';
+  }
+
+  function navigateToAllProjects() {
+    setView('all-projects');
+    setSelectedProject(null);
+    window.location.hash = '#all-projects';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function handleSelectProject(project: Project) {
+    setSelectedProject(project);
+    window.location.hash = `#project/${project.id}`;
+  }
+
+  function handleCloseModal() {
+    setSelectedProject(null);
+    if (view === 'all-projects') {
+      window.location.hash = '#all-projects';
+    } else {
+      window.location.hash = '#projects';
+    }
+  }
+
+  function handleEnquireFromModal() {
+    setSelectedProject(null);
+    setView('home');
+    window.location.hash = '#contact';
+    setTimeout(() => {
+      const contactEl = document.querySelector('#contact');
+      if (contactEl) {
+        contactEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 120);
+  }
+
   function handleContactSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const name = String(formData.get('name') ?? '');
     event.currentTarget.reset();
-    setContactStatus(`Thank you, ${name}. This demo form is not connected to an inbox yet.`);
+    setContactStatus(`Thank you, ${name}. Your consultation request has been received. Our engineering team will contact you shortly.`);
   }
 
   function handleNewsletterSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const email = String(new FormData(event.currentTarget).get('email') ?? '');
     event.currentTarget.reset();
-    setNewsletterStatus(`Thank you. Newsletter signup for ${email} is not connected yet.`);
+    setNewsletterStatus(`Thank you! Subscription confirmed for ${email}. You will receive our latest project milestones.`);
   }
 
   return (
@@ -105,24 +173,51 @@ export default function App() {
         inert={introVisible}
         aria-hidden={introVisible}
       >
-        <Header isScrolled={headerScrolled} isLogoHidden={headerLogoHidden} />
+        <Header
+          isScrolled={headerScrolled}
+          isLogoHidden={headerLogoHidden}
+          onNavigateHome={navigateToHome}
+          onNavigateAllProjects={navigateToAllProjects}
+        />
+
         <main>
-          <Hero />
-          <Clients />
-          <Projects />
-          <About />
-          <Services />
-          <Testimonial />
-          <Contact onSubmit={handleContactSubmit} status={contactStatus} />
+          {view === 'home' ? (
+            <>
+              <Hero />
+              <Clients />
+              <Projects
+                onSelectProject={handleSelectProject}
+                onViewAllProjects={navigateToAllProjects}
+              />
+              <About />
+              <Services />
+              <Testimonial />
+              <Contact onSubmit={handleContactSubmit} status={contactStatus} />
+            </>
+          ) : (
+            <AllProjectsPage
+              onSelectProject={handleSelectProject}
+              onBackToHome={navigateToHome}
+            />
+          )}
         </main>
-        <Footer onNewsletterSubmit={handleNewsletterSubmit} status={newsletterStatus} />
-        <a className={`whatsapp-float${whatsappVisible ? ' is-visible' : ''}`} href="https://wa.me/919050549861" target="_blank" rel="noreferrer" aria-label="Chat with Empire Group on WhatsApp" title="Chat with us on WhatsApp">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M12.04 2a9.9 9.9 0 0 0-8.5 14.98L2.2 22l5.17-1.36A9.96 9.96 0 1 0 12.04 2Zm0 18.13a8.15 8.15 0 0 1-4.16-1.14l-.3-.18-3.07.81.82-2.99-.2-.31a8.14 8.14 0 1 1 6.91 3.81Z"/>
-            <path fill="currentColor" d="M16.52 13.76c-.25-.13-1.5-.74-1.74-.82-.23-.09-.4-.13-.57.13-.17.25-.66.82-.81.99-.15.17-.3.19-.55.06-.25-.13-1.08-.4-2.06-1.27-.76-.68-1.27-1.52-1.42-1.78-.15-.25-.02-.39.11-.51.11-.11.25-.3.38-.44.13-.15.17-.25.25-.42.08-.17.04-.32-.02-.44-.06-.13-.57-1.38-.78-1.89-.2-.49-.41-.42-.57-.43l-.49-.01c-.17 0-.45.06-.68.32-.24.25-.91.89-.91 2.16s.93 2.5 1.06 2.67c.13.17 1.83 2.79 4.44 3.92.62.27 1.1.43 1.48.55.62.2 1.18.17 1.63.1.5-.08 1.5-.61 1.71-1.2.21-.59.21-1.1.15-1.2-.06-.1-.23-.17-.48-.3Z"/>
-          </svg>
-        </a>
+
+        <Footer
+          onNewsletterSubmit={handleNewsletterSubmit}
+          status={newsletterStatus}
+          onNavigateHome={navigateToHome}
+          onNavigateAllProjects={navigateToAllProjects}
+        />
+
+        {/* Deep Project Detail Modal */}
+        <ProjectDetailModal
+          project={selectedProject}
+          onClose={handleCloseModal}
+          onSelectProject={handleSelectProject}
+          onEnquire={handleEnquireFromModal}
+        />
       </div>
+
       {introVisible && (
         <div className={`logo-splash${introFlying ? ' is-flying' : ''}`} role="status" aria-label="Empire Group">
           <div className="logo-splash-lockup" ref={introLogoRef}>

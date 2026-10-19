@@ -1,101 +1,130 @@
-import { useState } from 'react';
+import { completedProjectsData, getProjectImageUrl, type Project } from '../data/projectsData';
 
-interface CompletedProject {
-  name: string;
-  location: string;
-  image?: string;
+interface ProjectsProps {
+  onSelectProject: (project: Project) => void;
+  onViewAllProjects: () => void;
 }
 
-const completedProjects: CompletedProject[] = [
-  { name: 'Kolte-Patil Life Republic', location: 'Hinjewadi, Pune', image: 'kolte-patil-life-republic-hinjewadi.jpg' },
-  { name: 'Blue Ridge', location: 'Hinjewadi, Pune', image: 'blue-ridge-hinjewadi-pune.jpg' },
-  { name: 'Puneville', location: '', image: 'puneville.jpg' },
-  { name: 'Nanded City Shubh Kalyan', location: '', image: 'nanded-city-shubh-kalyan.jpg' },
-  { name: 'Magarpatta Sylvania', location: '', image: 'magarpatta-sylvania.jpg' },
-  { name: 'Magarpatta Trillium', location: '', image: 'magarpatta-trillium.jpg' },
-  { name: 'Magarpatta Cosmos', location: '', image: 'magarpatta-cosmos.jpg' },
-  { name: 'Magarpatta SEZ', location: '', image: 'magarpatta-sez.jpg' },
-  { name: 'Magarpatta Jasminium', location: '', image: 'magarpatta-jasminium.jpg' },
-  { name: 'Magarpatta Laburnum', location: '', image: 'magarpatta-laburnum.jpg' },
-  { name: 'Magarpatta Erica', location: '', image: 'magarpatta-erica.jpg' },
-  { name: 'Lodha Palava City', location: '', image: 'lodha-palava-city.jpg' },
-  { name: 'Madhukosh by Paranjape', location: '', image: 'madhukosh-paranjape.jpg' },
-  { name: 'VTP Pegasus', location: 'Kharadi', image: 'vtp-pegasus-kharadi.jpg' },
-  { name: 'VTP Purvanchal', location: 'Wagholi', image: 'vtp-purvanchal-wagholi.jpg' },
-  { name: 'Lodha Belmondo', location: '', image: 'lodha-belmondo.jpg' },
-  { name: 'ibis Hotel, Hinjewadi Phase 2', location: 'Pune', image: 'ibis-hotel-hinjewadi-phase-2.jpg' },
-  { name: 'Konark Virtue', location: '', image: 'konark-virtue.jpg' },
-  { name: 'Phoenix Marketcity', location: 'Pune', image: 'phoenix-market-city-pune.jpg' },
-  { name: 'Ramakrishna Venuzia', location: 'Vijayawada', image: 'ramakrishna-venuzia-vijaywada.jpg' },
-  { name: 'Luxuria by Lodha', location: 'Thane', image: 'luxuria-lodha-thane.jpg' },
-  { name: 'The Spires', location: 'Aundh', image: 'the-spires-aundh.jpg' },
-  { name: 'Claren Tower', location: '', image: 'claren-tower.jpg' },
-];
-
-export function Projects() {
-  const [expandedProject, setExpandedProject] = useState<number | null>(null);
-  const [showAllProjects, setShowAllProjects] = useState(false);
+export function Projects({ onSelectProject, onViewAllProjects }: ProjectsProps) {
+  // Only show exactly three projects on the main page as requested
+  const displayedProjects = completedProjectsData.slice(0, 3);
 
   return (
     <section className="projects-section" id="projects" aria-labelledby="projects-title">
       <div className="container">
-        <div className="projects-heading" data-reveal>
-          <p className="eyebrow">Experience across developments</p>
-          <h2 className="section-heading" id="projects-title">Our completed <em>projects.</em></h2>
-          <p className="section-copy">A selection of developments and destinations from our project experience.</p>
-        </div>
-        <ol className="project-grid" id="completed-project-grid">
-          {completedProjects.map((project, index) => (
-            <li
-              className={`project-item${expandedProject === index ? ' is-open' : ''}`}
-              data-reveal
-              data-reveal-delay={index % 3}
-              hidden={!showAllProjects && index >= 3}
-              key={project.name}
-              onPointerEnter={(event) => {
-                if (event.pointerType === 'mouse') setExpandedProject(null);
-              }}
+        {/* Section Heading */}
+        <div className="projects-heading-row" data-reveal>
+          <div className="projects-heading-left">
+            <p className="eyebrow">Proven Track Record · Pune &amp; Beyond</p>
+            <h2 className="section-heading" id="projects-title">
+              Our Completed <em>Projects.</em>
+            </h2>
+            <p className="section-copy">
+              A distinguished portfolio of 23+ landmark developments delivered with India’s leading real estate builders. Every structure is engineered for endurance, seismic resilience, and architectural distinction.
+            </p>
+          </div>
+          <div className="projects-heading-right">
+            <button
+              type="button"
+              className="button projects-view-all-cta"
+              onClick={onViewAllProjects}
+              aria-label="View all 23+ completed projects on dedicated page"
             >
-              <button
-                className="project-preview"
-                type="button"
-                aria-label={`Show project image for ${project.name}`}
-                aria-expanded={expandedProject === index}
-                onClick={() => {
-                  if (window.matchMedia('(hover: none)').matches) {
-                    setExpandedProject(expandedProject === index ? null : index);
-                  }
-                }}
-              >
-                <span className="project-preview-inner">
-                  <span className="project-preview-front">
-                    <span className="project-number">{String(index + 1).padStart(2, '0')}</span>
-                    <span className="project-preview-name">{project.name}</span>
+              Open Full Projects (23+) <span className="arrow">↗</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Project Grid: Exactly 3 projects on the main page */}
+        <div className="homepage-project-grid" id="completed-project-grid">
+          {displayedProjects.map((project, index) => (
+            <article
+              key={project.id}
+              className="home-project-card"
+              data-reveal
+              data-reveal-delay={(index % 3) + 1}
+              onClick={() => onSelectProject(project)}
+              tabIndex={0}
+              role="button"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectProject(project);
+                }
+              }}
+              aria-label={`View full details for ${project.name}`}
+            >
+              {/* Project Image - Always visible without hover */}
+              <div className="home-project-image-box">
+                <img
+                  src={getProjectImageUrl(project.image)}
+                  alt={`${project.name}${project.location ? `, ${project.location}` : ''}`}
+                  className="home-project-image"
+                  loading="lazy"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/empire-group-project-2560x1440.jpg';
+                  }}
+                />
+                <div className="home-project-image-shade" />
+
+                {/* Badges */}
+                <div className="home-project-badges">
+                  <span className="home-project-num">#{String(index + 1).padStart(2, '0')}</span>
+                  <span className="home-project-tag">{project.category}</span>
+                </div>
+
+                {/* Hover Quick Action */}
+                <div className="home-project-hover-action">
+                  <span>View Project Dossier &amp; Specs →</span>
+                </div>
+              </div>
+
+              {/* Card Meta Content */}
+              <div className="home-project-info">
+                <p className="home-project-developer">{project.developer}</p>
+                <h3 className="home-project-title">{project.name}</h3>
+
+                <div className="home-project-row">
+                  <span className="home-project-loc">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    {project.location}
                   </span>
-                  <span className="project-preview-back">
-                    <img
-                      src={`https://www.empiireprojects.in/_next/image?url=%2Fprojects%2Fcompleted%2F${project.image}&w=828&q=75`}
-                      alt={`${project.name}${project.location ? `, ${project.location}` : ''}`}
-                      loading="lazy"
-                    />
-                    <span className="project-preview-caption">{project.name}</span>
+                  <span className="home-project-city">{project.city}</span>
+                </div>
+
+                <div className="home-project-card-footer">
+                  <span className="home-project-detail-btn">
+                    Explore Details <span className="arrow">↗</span>
                   </span>
-                </span>
-              </button>
-            </li>
+                  <span className="home-project-status-dot">
+                    <span className="dot" /> {project.year}
+                  </span>
+                </div>
+              </div>
+            </article>
           ))}
-        </ol>
-        <div className="projects-more-wrap">
-          <button
-            className="button projects-more"
-            type="button"
-            aria-expanded={showAllProjects}
-            aria-controls="completed-project-grid"
-            onClick={() => setShowAllProjects(!showAllProjects)}
-          >
-            {showAllProjects ? 'Show fewer projects' : 'View more projects'}
-            <span className="arrow" aria-hidden="true">{showAllProjects ? '↑' : '↓'}</span>
-          </button>
+        </div>
+
+        {/* Section Bottom Controls: Only Open Full Projects button */}
+        <div className="projects-footer-cta-wrap" data-reveal>
+          <div className="projects-footer-cta-box">
+            <div className="cta-box-text">
+              <h4>Want to see all our landmark developments?</h4>
+              <p>Explore all 23+ completed projects with full specifications, developer partnerships, and engineering highlights.</p>
+            </div>
+            <div className="cta-box-buttons">
+              <button
+                type="button"
+                className="button projects-primary-more-btn"
+                onClick={onViewAllProjects}
+              >
+                Open Full Projects (23 Projects) <span className="arrow">↗</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

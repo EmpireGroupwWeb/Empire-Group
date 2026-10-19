@@ -81,9 +81,9 @@ export function Hero() {
       <div className="hero-shade" aria-hidden="true" />
       <div className="container hero-layout">
         <div className="hero-copy">
-          <p className="eyebrow">Real estate & construction · Pune</p>
-          <h1 id="hero-title">Building places<br />that move <em>Pune forward.</em></h1>
-          <p className="hero-description">From the first foundation to the final detail, we shape developments made to stand the test of time.</p>
+          <p className="eyebrow">Civil Engineering &amp; Real Estate Developers · Pune</p>
+          <h1 id="hero-title">Building landmarks<br />that shape <em>Pune&apos;s skyline.</em></h1>
+          <p className="hero-description">From precision foundations to soaring high-rises and integrated townships, we engineer master developments built to stand the test of time.</p>
           <div className="hero-actions">
             <a className="button" href="#projects">Explore our projects <span className="arrow" aria-hidden="true">↗</span></a>
             <a className="hero-contact-link" href="#contact">Talk to our team <span aria-hidden="true">→</span></a>
