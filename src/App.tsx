@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { About } from './sections/About';
 import { AllProjectsPage } from './sections/AllProjectsPage';
+import { CareerPage } from './sections/Career';
 import { Clients } from './sections/Clients';
 import { Contact } from './sections/Contact';
 import { Footer } from './sections/Footer';
@@ -22,7 +23,7 @@ export default function App() {
   const [newsletterStatus, setNewsletterStatus] = useState('');
 
   // Routing state
-  const [view, setView] = useState<'home' | 'all-projects'>('home');
+  const [view, setView] = useState<'home' | 'all-projects' | 'careers'>('home');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   // Sync state with URL hash
@@ -38,8 +39,11 @@ export default function App() {
       } else if (hash === '#all-projects') {
         setView('all-projects');
         setSelectedProject(null);
+      } else if (hash === '#careers') {
+        setView('careers');
+        setSelectedProject(null);
       } else {
-        if (view === 'all-projects' && hash !== '#all-projects') {
+        if ((view === 'all-projects' || view === 'careers') && hash !== '#all-projects' && hash !== '#careers') {
           setView('home');
         }
         setSelectedProject(null);
@@ -125,6 +129,13 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function navigateToCareers() {
+    setView('careers');
+    setSelectedProject(null);
+    window.location.hash = '#careers';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   function handleSelectProject(project: Project) {
     setSelectedProject(project);
     window.location.hash = `#project/${project.id}`;
@@ -178,6 +189,7 @@ export default function App() {
           isLogoHidden={headerLogoHidden}
           onNavigateHome={navigateToHome}
           onNavigateAllProjects={navigateToAllProjects}
+          onNavigateCareers={navigateToCareers}
         />
 
         <main>
@@ -194,6 +206,8 @@ export default function App() {
               <Testimonial />
               <Contact onSubmit={handleContactSubmit} status={contactStatus} />
             </>
+          ) : view === 'careers' ? (
+            <CareerPage onNavigateHome={navigateToHome} />
           ) : (
             <AllProjectsPage
               onSelectProject={handleSelectProject}
@@ -207,6 +221,7 @@ export default function App() {
           status={newsletterStatus}
           onNavigateHome={navigateToHome}
           onNavigateAllProjects={navigateToAllProjects}
+          onNavigateCareers={navigateToCareers}
         />
 
         {/* Deep Project Detail Modal */}

@@ -1,10 +1,12 @@
-import type { FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
+import { LegalModal, type LegalTab } from './LegalModal';
 
 interface FooterProps {
   onNewsletterSubmit: (event: FormEvent<HTMLFormElement>) => void;
   status: string;
   onNavigateHome?: () => void;
   onNavigateAllProjects?: () => void;
+  onNavigateCareers?: () => void;
 }
 
 export function Footer({
@@ -12,7 +14,15 @@ export function Footer({
   status,
   onNavigateHome,
   onNavigateAllProjects,
+  onNavigateCareers,
 }: FooterProps) {
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [activeLegalTab, setActiveLegalTab] = useState<LegalTab>('privacy');
+
+  function openLegalModal(tab: LegalTab) {
+    setActiveLegalTab(tab);
+    setLegalModalOpen(true);
+  }
   return (
     <footer className="site-footer" id="site-footer">
       <div className="container footer-centered-container">
@@ -153,6 +163,18 @@ export function Footer({
           >
             Contact
           </a>
+          <span className="footer-nav-divider" aria-hidden="true">•</span>
+          {onNavigateCareers ? (
+            <button
+              type="button"
+              className="footer-nav-btn-careers"
+              onClick={onNavigateCareers}
+            >
+              Careers
+            </button>
+          ) : (
+            <a href="#careers">Careers</a>
+          )}
         </nav>
 
         {/* Centered Corporate Headquarters Card */}
@@ -228,7 +250,7 @@ export function Footer({
           <span className="socials-label">Connect With Us:</span>
           <div className="socials-links-wrap">
             <a
-              href="https://in.linkedin.com/company/empire-group-construction"
+              href="https://www.linkedin.com/company/empire-group-social/?viewAsMember=true"
               target="_blank"
               rel="noreferrer"
               aria-label="Empire Group on LinkedIn"
@@ -240,7 +262,7 @@ export function Footer({
               </svg>
             </a>
             <a
-              href="https://www.instagram.com/"
+              href="https://www.instagram.com/empire.group.social?mdxt=M3FnZWxoYXcxcjVu"
               target="_blank"
               rel="noreferrer"
               aria-label="Empire Group on Instagram"
@@ -254,7 +276,7 @@ export function Footer({
               </svg>
             </a>
             <a
-              href="https://www.facebook.com/"
+              href="https://www.linkedin.com/company/empire-group-social/posts/?feedView=all&viewAsMember=true"
               target="_blank"
               rel="noreferrer"
               aria-label="Empire Group on Facebook"
@@ -263,18 +285,6 @@ export function Footer({
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="currentColor" d="M13.4 21v-8h2.8l.4-3.1h-3.2V8c0-.9.3-1.5 1.6-1.5h1.7V3.7c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2H7.2V13H10v8h3.4Z"/>
-              </svg>
-            </a>
-            <a
-              href="https://www.youtube.com/"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Empire Group on YouTube"
-              className="footer-social-btn"
-              title="YouTube"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="currentColor" d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12c0 1.6.1 3.2.5 4.8a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1c.4-1.6.5-3.2.5-4.8s-.1-3.2-.5-4.8ZM9.8 15.3V8.7l5.8 3.3z"/>
               </svg>
             </a>
           </div>
@@ -286,19 +296,55 @@ export function Footer({
             © {new Date().getFullYear()} Empire Group Infrastructure &amp; Developers. All rights reserved.
           </p>
           <div className="footer-legal-links" aria-label="Legal and compliance">
-            <a href="#contact">Privacy Policy</a>
+            <button
+              type="button"
+              className="footer-legal-btn"
+              onClick={() => openLegalModal('privacy')}
+              title="View Empire Group Privacy Policy"
+            >
+              Privacy Policy
+            </button>
             <span className="legal-divider">•</span>
-            <a href="#contact">Terms of Contracting</a>
+            <button
+              type="button"
+              className="footer-legal-btn"
+              onClick={() => openLegalModal('terms')}
+              title="View Terms of Contracting & EPC Standards"
+            >
+              Terms of Contracting
+            </button>
             <span className="legal-divider">•</span>
-            <a href="#contact">RERA Compliance</a>
+            <button
+              type="button"
+              className="footer-legal-btn"
+              onClick={() => openLegalModal('rera')}
+              title="View MahaRERA Compliance & Structural Defect Policy"
+            >
+              RERA Compliance
+            </button>
             <span className="legal-divider">•</span>
-            <a href="#contact">Safety &amp; ISO Certification</a>
+            <button
+              type="button"
+              className="footer-legal-btn"
+              onClick={() => openLegalModal('safety')}
+              title="View ISO Certifications & HSE Safety Protocols"
+            >
+              Safety &amp; ISO Certification
+            </button>
           </div>
           <p className="footer-sub-notice">
             Pune &amp; Maharashtra Real Estate &amp; Structural Contracting Specialists.
           </p>
         </div>
       </div>
+
+      {/* On-Page Legal & Compliance Modal */}
+      <LegalModal
+        isOpen={legalModalOpen}
+        activeTab={activeLegalTab}
+        onSelectTab={setActiveLegalTab}
+        onClose={() => setLegalModalOpen(false)}
+      />
     </footer>
   );
 }

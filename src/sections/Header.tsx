@@ -5,6 +5,7 @@ interface HeaderProps {
   isLogoHidden: boolean;
   onNavigateHome: () => void;
   onNavigateAllProjects: () => void;
+  onNavigateCareers: () => void;
 }
 
 export function Header({
@@ -12,8 +13,10 @@ export function Header({
   isLogoHidden,
   onNavigateHome,
   onNavigateAllProjects,
+  onNavigateCareers,
 }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   function closeMenu() {
     setMenuOpen(false);
@@ -42,10 +45,76 @@ export function Header({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [menuOpen]);
 
+  // Auto-hide navbar on scroll down, reveal on scroll up (on all pages)
+  useEffect(() => {
+    let lastScrollY = Math.max(0, window.scrollY);
+    let ticking = false;
+
+    function handleScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = Math.max(0, window.scrollY);
+
+          // If mobile menu is open, keep navbar visible
+          if (menuOpen) {
+            setIsVisible(true);
+            lastScrollY = currentScrollY;
+            ticking = false;
+            return;
+          }
+
+          // Near top of page: always show
+          if (currentScrollY <= 60) {
+            setIsVisible(true);
+            lastScrollY = currentScrollY;
+            ticking = false;
+            return;
+          }
+
+          const scrollDelta = currentScrollY - lastScrollY;
+
+          // Prevent rubber-band bounce at page bottom
+          const maxScrollable = document.documentElement.scrollHeight - window.innerHeight;
+          if (currentScrollY >= maxScrollable - 20) {
+            ticking = false;
+            return;
+          }
+
+          // Threshold of 6px to avoid micro-jitter
+          if (Math.abs(scrollDelta) > 6) {
+            if (scrollDelta > 0) {
+              // Scrolling down -> hide navbar
+              setIsVisible(false);
+            } else {
+              // Scrolling up -> reveal navbar
+              setIsVisible(true);
+            }
+            lastScrollY = currentScrollY;
+          }
+
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+
+    function handleHashChange() {
+      setIsVisible(true);
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [menuOpen]);
+
   return (
     <>
       <header
-        className={`site-header${isScrolled ? ' is-scrolled' : ''}${isLogoHidden ? ' is-logo-hidden' : ''}`}
+        className={`site-header${isScrolled ? ' is-scrolled' : ''}${isLogoHidden ? ' is-logo-hidden' : ''}${!isVisible ? ' is-hidden' : ''}`}
         data-site-header
       >
         <div className="container nav-wrap">
@@ -151,6 +220,16 @@ export function Header({
               }}
             >
               Contact
+            </a>
+            <a
+              href="#careers"
+              className="desktop-nav-career-link"
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigateCareers();
+              }}
+            >
+              Careers
             </a>
           </nav>
 
@@ -344,6 +423,17 @@ export function Header({
               <span className="link-num">07</span>
               <span className="link-text">Contact Office</span>
             </a>
+            <button
+              type="button"
+              className="mobile-nav-link mobile-nav-career"
+              onClick={() => {
+                closeMenu();
+                onNavigateCareers();
+              }}
+            >
+              <span className="link-num">08</span>
+              <span className="link-text">Careers ↗</span>
+            </button>
           </nav>
 
           {/* Drawer Footer / Contacts */}
