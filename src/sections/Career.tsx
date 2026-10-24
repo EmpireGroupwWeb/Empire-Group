@@ -245,53 +245,11 @@ const locations = ['All Locations', ...Array.from(new Set(openRoles.map((r) => r
 const jobTypes = ['All Types', 'Full-Time', 'Contract', 'Part-Time'];
 const experienceLevels = ['All Experience', '0–3 Years', '3–6 Years', '6–10 Years', '10+ Years'];
 
-const benefits = [
-  { icon: '🏥', label: 'Health Insurance', desc: 'Comprehensive medical coverage for you and your family' },
-  { icon: '📈', label: 'Growth & Promotions', desc: 'Structured career ladder with annual performance reviews' },
-  { icon: '🎓', label: 'Skill Development', desc: 'Sponsored certifications, training programs & workshops' },
-  { icon: '🌏', label: 'Legacy Projects', desc: "Work on Maharashtra's most iconic landmark developments" },
-  { icon: '🛡️', label: 'PF & Gratuity', desc: 'Full provident fund, gratuity, and statutory compliance' },
-  { icon: '⚙️', label: 'Tech-Forward Work', desc: 'BIM, drone surveys, ERP platforms & modern construction tech' },
-];
-
-const testimonials = [
-  {
-    name: 'Rahul Deshmukh',
-    role: 'Senior Project Engineer',
-    tenure: '6 years at Empire Group',
-    quote: "Empire Group gave me the platform to manage ₹200 Cr+ projects by age 32. The exposure here is unmatched anywhere in Pune's construction industry.",
-    avatar: 'RD',
-  },
-  {
-    name: 'Priya Kulkarni',
-    role: 'HSE Safety Manager',
-    tenure: '4 years at Empire Group',
-    quote: "The safety culture here is genuine — not just on paper. From day one I had leadership's full backing to build a zero-incident site culture across all our projects.",
-    avatar: 'PK',
-  },
-  {
-    name: 'Vikram Shinde',
-    role: 'BIM Engineer',
-    tenure: '3 years at Empire Group',
-    quote: "They actually invested in my REVIT and BIM 360 certifications. I went from junior CAD drafter to managing BIM for a 40-storey tower in 2 years. Incredible journey.",
-    avatar: 'VS',
-  },
-];
 
 /* ── Small helpers ──────────────────────────────────────── */
 function PostedBadge({ days }: { days: number }) {
   const label = days === 0 ? 'Today' : days === 1 ? '1 day ago' : `${days} days ago`;
   return <span className="role-posted-badge">{label}</span>;
-}
-
-function CultureIcon({ type }: { type: string }) {
-  const props = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
-  if (type === 'shield') return <svg {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>;
-  if (type === 'growth') return <svg {...props}><path d="M18 20V10M12 20V4M6 20v-6" /></svg>;
-  if (type === 'clock') return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" /></svg>;
-  if (type === 'team') return <svg {...props}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
-  if (type === 'tech') return <svg {...props}><rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" /></svg>;
-  return <svg {...props}><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5M2 12l10 5 10-5" /></svg>;
 }
 
 /* ── Main Component ─────────────────────────────────────── */
@@ -362,103 +320,34 @@ export function CareerPage({ onNavigateHome }: CareerPageProps) {
   return (
     <div className="career-page">
 
-      {/* ── HERO ───────────────────────────────────────────── */}
-      <section className="cp-hero" aria-label="Careers at Empire Group">
-        <div className="cp-hero-backdrop" aria-hidden="true">
-          <div className="cp-hero-dots" />
-          <div className="cp-hero-glow cp-hero-glow--left" />
-          <div className="cp-hero-glow cp-hero-glow--right" />
-        </div>
-
-        <div className="container cp-hero-inner">
-          <button type="button" className="cp-back-btn" onClick={() => { onNavigateHome(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
-            Back to Home
-          </button>
-
-          <div className="cp-hero-badge">
-            <span className="cp-badge-dot" />
-            Actively Hiring — {openRoles.length} Open Positions
-          </div>
-
-          <h1 className="cp-hero-title">
-            Build More Than Structures.<br />
-            <em>Build Your Legacy.</em>
-          </h1>
-          <p className="cp-hero-subtitle">
-            Join India's foremost EPC construction leader. Empire Group offers civil, structural, MEP, and management professionals a career where their work becomes permanent landmarks on Maharashtra's skyline.
-          </p>
-
-          <div className="cp-hero-actions">
-            <a href="#cp-jobs" className="button cp-hero-btn-primary" onClick={(e) => { e.preventDefault(); document.querySelector('#cp-jobs')?.scrollIntoView({ behavior: 'smooth' }); }}>
-              Explore Open Roles
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
-            </a>
-            <button type="button" className="button button--light cp-hero-btn-secondary" onClick={() => { openApplyForm('General Application'); }}>
-              Submit General CV
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+      {/* Compact Executive Header (No Oversized Hero) */}
+      <header className="inner-page-header">
+        <div className="container">
+          <div className="inner-header-nav">
+            <button
+              type="button"
+              className="back-home-button"
+              onClick={() => {
+                onNavigateHome();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              aria-label="Return to homepage"
+            >
+              <span aria-hidden="true">←</span> Back to Home
             </button>
+            <span className="inner-header-tag">EMPIRE GROUP · CIVIL ENGINEERING &amp; SITE OPERATIONS RECRUITMENT</span>
           </div>
-
-          {/* Stats */}
-          <div className="cp-stats-row">
-            {[['500+', 'Professionals'], ['20+', 'Years Legacy'], ['23+', 'Landmarks Built'], ['₹2,000 Cr+', 'Project Value']].map(([num, label]) => (
-              <div className="cp-stat" key={label}>
-                <strong>{num}</strong>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── WHY JOIN US ────────────────────────────────────── */}
-      <section className="cp-why" aria-labelledby="cp-why-title">
-        <div className="container">
-          <div className="cp-section-header" data-reveal>
-            <p className="eyebrow">Why Empire Group</p>
-            <h2 className="section-heading" id="cp-why-title">A career as ambitious as <em>you are.</em></h2>
-            <p className="section-copy">Beyond a job title — we offer a platform to build skills, lead landmark projects, and grow alongside Maharashtra's most respected construction organisation.</p>
-          </div>
-          <div className="cp-why-grid">
-            {[
-              { icon: 'shield', title: 'Zero-Compromise Safety', desc: 'ISO 45001 certified. Every site, every day — your safety is non-negotiable.' },
-              { icon: 'growth', title: 'Accelerated Career Growth', desc: 'Structured mentoring, fast-track promotions, and exposure to ₹500 Cr projects.' },
-              { icon: 'clock', title: 'Work-Life Balance', desc: 'Competitive leave, flexible scheduling, and employee wellness programs.' },
-              { icon: 'team', title: 'Elite Team Culture', desc: 'Collaborate with top civil, structural, MEP, and tech professionals in the industry.' },
-              { icon: 'tech', title: 'Modern Technology', desc: 'BIM 360, drone surveys, RMC telemetry, and digital PM tools across all sites.' },
-              { icon: 'layers', title: 'Iconic Project Portfolio', desc: 'Your work becomes a 40-storey skyline landmark seen for generations.' },
-            ].map((c, i) => (
-              <article className="cp-why-card" data-reveal data-reveal-delay={i + 1} key={c.title}>
-                <div className="cp-why-icon"><CultureIcon type={c.icon} /></div>
-                <h3>{c.title}</h3>
-                <p>{c.desc}</p>
-              </article>
-            ))}
+          <div className="inner-header-title-row">
+            <h1 className="inner-page-title">
+              Engineering Careers &amp; <em>Site Operations</em>
+            </h1>
+            <p className="inner-page-desc">
+              Active openings across Pune and Maharashtra for Senior Civil Site Engineers, Project Managers, HSE Safety Officers, and Quantity Surveyors.
+            </p>
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* ── BENEFITS STRIP ─────────────────────────────────── */}
-      <section className="cp-benefits" aria-label="Employee benefits">
-        <div className="container">
-          <div className="cp-benefits-header" data-reveal>
-            <p className="eyebrow">Employee Benefits</p>
-            <h2 className="section-heading">What we offer <em>beyond the salary.</em></h2>
-          </div>
-          <div className="cp-benefits-grid">
-            {benefits.map((b) => (
-              <div className="cp-benefit-card" key={b.label} data-reveal>
-                <span className="cp-benefit-icon">{b.icon}</span>
-                <div>
-                  <strong>{b.label}</strong>
-                  <p>{b.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── SEARCH + JOBS ──────────────────────────────────── */}
       <section className="cp-jobs-section" id="cp-jobs" aria-labelledby="cp-jobs-title">
@@ -667,31 +556,6 @@ export function CareerPage({ onNavigateHome }: CareerPageProps) {
         </div>
       </section>
 
-      {/* ── EMPLOYEE TESTIMONIALS ───────────────────────────── */}
-      <section className="cp-testimonials" aria-labelledby="cp-testimonials-title">
-        <div className="container">
-          <div className="cp-section-header cp-section-header--centered" data-reveal>
-            <p className="eyebrow">Team Stories</p>
-            <h2 className="section-heading" id="cp-testimonials-title">Heard from our <em>people.</em></h2>
-          </div>
-          <div className="cp-testimonials-grid">
-            {testimonials.map((t, i) => (
-              <blockquote className="cp-testimonial-card" data-reveal data-reveal-delay={i + 1} key={t.name}>
-                <div className="cp-testimonial-quote-icon" aria-hidden="true">"</div>
-                <p className="cp-testimonial-text">{t.quote}</p>
-                <footer className="cp-testimonial-footer">
-                  <div className="cp-testimonial-avatar" aria-hidden="true">{t.avatar}</div>
-                  <div>
-                    <cite className="cp-testimonial-name">{t.name}</cite>
-                    <span className="cp-testimonial-role">{t.role}</span>
-                    <span className="cp-testimonial-tenure">{t.tenure}</span>
-                  </div>
-                </footer>
-              </blockquote>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── APPLICATION FORM ────────────────────────────────── */}
       <section className="cp-apply-section" id="cp-apply" aria-labelledby="cp-apply-title" ref={formRef}>

@@ -1,17 +1,30 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { About } from './sections/About';
+import { AboutPage } from './sections/AboutPage';
 import { AllProjectsPage } from './sections/AllProjectsPage';
+import { AwardsPage } from './sections/AwardsPage';
 import { CareerPage } from './sections/Career';
 import { Clients } from './sections/Clients';
 import { Contact } from './sections/Contact';
+import { EquipmentsPage } from './sections/EquipmentsPage';
 import { Footer } from './sections/Footer';
 import { Header } from './sections/Header';
 import { Hero } from './sections/Hero';
+import { OngoingProjectsPage } from './sections/OngoingProjectsPage';
 import { ProjectDetailModal } from './sections/ProjectDetailModal';
 import { Projects } from './sections/Projects';
 import { Services } from './sections/Services';
 import { Testimonial } from './sections/Testimonial';
 import { completedProjectsData, type Project } from './data/projectsData';
+
+export type ViewState =
+  | 'home'
+  | 'about'
+  | 'all-projects'
+  | 'ongoing-projects'
+  | 'equipments'
+  | 'awards'
+  | 'careers';
 
 export default function App() {
   const [headerScrolled, setHeaderScrolled] = useState(false);
@@ -23,7 +36,7 @@ export default function App() {
   const [newsletterStatus, setNewsletterStatus] = useState('');
 
   // Routing state
-  const [view, setView] = useState<'home' | 'all-projects' | 'careers'>('home');
+  const [view, setView] = useState<ViewState>('home');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   // Sync state with URL hash
@@ -36,14 +49,27 @@ export default function App() {
         if (found) {
           setSelectedProject(found);
         }
-      } else if (hash === '#all-projects') {
+      } else if (hash === '#about') {
+        setView('about');
+        setSelectedProject(null);
+      } else if (hash === '#all-projects' || hash === '#completed-projects') {
         setView('all-projects');
+        setSelectedProject(null);
+      } else if (hash === '#ongoing-projects') {
+        setView('ongoing-projects');
+        setSelectedProject(null);
+      } else if (hash === '#equipments' || hash === '#fleet') {
+        setView('equipments');
+        setSelectedProject(null);
+      } else if (hash === '#awards' || hash === '#certifications') {
+        setView('awards');
         setSelectedProject(null);
       } else if (hash === '#careers') {
         setView('careers');
         setSelectedProject(null);
       } else {
-        if ((view === 'all-projects' || view === 'careers') && hash !== '#all-projects' && hash !== '#careers') {
+        const subPages = ['about', 'all-projects', 'ongoing-projects', 'equipments', 'awards', 'careers'];
+        if (subPages.includes(view) && !subPages.map((p) => `#${p}`).includes(hash)) {
           setView('home');
         }
         setSelectedProject(null);
@@ -57,7 +83,7 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [view]);
 
-  // Observer for reveal animations & footer whatsapp
+  // Observer for reveal animations
   useEffect(() => {
     const revealObserver = new IntersectionObserver((entries, observer) => {
       entries.forEach((entry) => {
@@ -120,6 +146,14 @@ export default function App() {
     setView('home');
     setSelectedProject(null);
     window.location.hash = '#home';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function navigateToAbout() {
+    setView('about');
+    setSelectedProject(null);
+    window.location.hash = '#about';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function navigateToAllProjects() {
@@ -129,11 +163,58 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function navigateToOngoingProjects() {
+    setView('ongoing-projects');
+    setSelectedProject(null);
+    window.location.hash = '#ongoing-projects';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function navigateToEquipments() {
+    setView('equipments');
+    setSelectedProject(null);
+    window.location.hash = '#equipments';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function navigateToAwards() {
+    setView('awards');
+    setSelectedProject(null);
+    window.location.hash = '#awards';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   function navigateToCareers() {
     setView('careers');
     setSelectedProject(null);
     window.location.hash = '#careers';
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function navigateToContact() {
+    if (view !== 'home') {
+      setView('home');
+    }
+    window.location.hash = '#contact';
+    setTimeout(() => {
+      const el = document.querySelector('#contact');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  }
+
+  function navigateToClients() {
+    if (view !== 'home') {
+      setView('home');
+    }
+    window.location.hash = '#clients';
+    setTimeout(() => {
+      const el = document.querySelector('#clients');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   }
 
   function handleSelectProject(project: Project) {
@@ -187,9 +268,16 @@ export default function App() {
         <Header
           isScrolled={headerScrolled}
           isLogoHidden={headerLogoHidden}
+          currentView={view}
           onNavigateHome={navigateToHome}
+          onNavigateAbout={navigateToAbout}
           onNavigateAllProjects={navigateToAllProjects}
+          onNavigateOngoingProjects={navigateToOngoingProjects}
+          onNavigateEquipments={navigateToEquipments}
+          onNavigateAwards={navigateToAwards}
           onNavigateCareers={navigateToCareers}
+          onNavigateContact={navigateToContact}
+          onNavigateClients={navigateToClients}
         />
 
         <main>
@@ -201,11 +289,34 @@ export default function App() {
                 onSelectProject={handleSelectProject}
                 onViewAllProjects={navigateToAllProjects}
               />
-              <About />
+              <About
+                onNavigateAbout={navigateToAbout}
+                onNavigateContact={navigateToContact}
+              />
               <Services />
               <Testimonial />
               <Contact onSubmit={handleContactSubmit} status={contactStatus} />
             </>
+          ) : view === 'about' ? (
+            <AboutPage
+              onBackToHome={navigateToHome}
+              onNavigateContact={navigateToContact}
+            />
+          ) : view === 'ongoing-projects' ? (
+            <OngoingProjectsPage
+              onBackToHome={navigateToHome}
+              onNavigateContact={navigateToContact}
+            />
+          ) : view === 'equipments' ? (
+            <EquipmentsPage
+              onBackToHome={navigateToHome}
+              onNavigateContact={navigateToContact}
+            />
+          ) : view === 'awards' ? (
+            <AwardsPage
+              onBackToHome={navigateToHome}
+              onNavigateContact={navigateToContact}
+            />
           ) : view === 'careers' ? (
             <CareerPage onNavigateHome={navigateToHome} />
           ) : (
@@ -220,8 +331,6 @@ export default function App() {
           onNewsletterSubmit={handleNewsletterSubmit}
           status={newsletterStatus}
           onNavigateHome={navigateToHome}
-          onNavigateAllProjects={navigateToAllProjects}
-          onNavigateCareers={navigateToCareers}
         />
 
         {/* Deep Project Detail Modal */}
