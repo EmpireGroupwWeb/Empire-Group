@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+﻿import { useEffect, useRef, useState, type FormEvent } from 'react';
+import gsap from 'gsap';
 import { About } from './sections/About';
 import { AboutPage } from './sections/AboutPage';
 import { AllProjectsPage } from './sections/AllProjectsPage';
@@ -30,8 +31,9 @@ export default function App() {
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const [headerLogoHidden, setHeaderLogoHidden] = useState(false);
   const [introVisible, setIntroVisible] = useState(true);
-  const [introFlying, setIntroFlying] = useState(false);
-  const introLogoRef = useRef<HTMLDivElement>(null);
+  const introOverlayRef = useRef<HTMLDivElement>(null);
+  const introLogoImgRef = useRef<HTMLImageElement>(null);
+  const introGlowRef = useRef<HTMLDivElement>(null);
   const [contactStatus, setContactStatus] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState('');
 
@@ -110,35 +112,102 @@ export default function App() {
     };
   }, [view]);
 
-  // Intro Splash animation
+  // GSAP Premium Cinematic Intro Animation
   useEffect(() => {
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let finishTimer = 0;
-    const startTimer = window.setTimeout(() => {
-      if (!reducedMotion) {
-        const splashLogo = introLogoRef.current;
-        const source = splashLogo?.querySelector('img');
-        const target = document.querySelector('.brand-mark--full');
+    const overlay = introOverlayRef.current;
+    const splashImg = introLogoImgRef.current;
+    const glow = introGlowRef.current;
+    if (!overlay || !splashImg) return;
 
-        if (source && target) {
-          const from = source.getBoundingClientRect();
-          const to = target.getBoundingClientRect();
-          source.animate([
-            { transform: 'translate(0, 0) scale(1, 1)' },
-            {
-              transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / from.width}, ${to.height / from.height})`,
-            },
-          ], { duration: 1400, easing: 'cubic-bezier(.22, 1, .36, 1)', fill: 'forwards' });
+    // Set initial styles
+    gsap.set(splashImg, { opacity: 0, scale: 0.85, x: 0, y: 0 });
+    if (glow) gsap.set(glow, { opacity: 0, scale: 0.8 });
+
+    const tl = gsap.timeline();
+
+    // 1. Snappy & ultra-smooth fade-in & scale of center logo (0.55s)
+    tl.to(splashImg, {
+      opacity: 1,
+      scale: 1,
+      duration: 0.55,
+      ease: 'power2.out',
+    });
+
+    if (glow) {
+      tl.to(glow, {
+        opacity: 0.8,
+        scale: 1,
+        duration: 0.55,
+        ease: 'power2.out',
+      }, '<');
+    }
+
+    // 2. Focused dwell at center (1.4s for a faster, tighter feel)
+    tl.to({}, { duration: 1.0 });
+
+    // 3. Fast, fluid flight towards navbar and reveal website
+    tl.call(() => {
+      const navTarget = document.querySelector('.brand-mark--full') as HTMLElement | null;
+      const siteShell = document.querySelector('.site-shell') as HTMLElement | null;
+
+      if (navTarget) {
+        navTarget.style.opacity = '0';
+        const from = splashImg.getBoundingClientRect();
+        const to = navTarget.getBoundingClientRect();
+
+        const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
+        const dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+        const scaleX = to.width / from.width;
+        const scaleY = to.height / from.height;
+
+        // Smoothly fade out the dark background overlay
+        gsap.to(overlay, {
+          backgroundColor: 'rgba(6, 11, 20, 0)',
+          duration: 0.8,
+          ease: 'power2.inOut',
+        });
+
+        if (siteShell) {
+          gsap.to(siteShell, {
+            opacity: 1,
+            duration: 0.65,
+            ease: 'power2.out',
+          });
         }
-      }
 
-      setIntroFlying(true);
-      finishTimer = window.setTimeout(() => setIntroVisible(false), reducedMotion ? 100 : 1430);
-    }, reducedMotion ? 100 : 1400);
+        if (glow) {
+          gsap.to(glow, {
+            opacity: 0,
+            duration: 0.3,
+            ease: 'power2.out',
+          });
+        }
+
+        // Fast & ultra-fluid flight with exponential ease (0.85s)
+        gsap.to(splashImg, {
+          x: dx,
+          y: dy,
+          scaleX: scaleX,
+          scaleY: scaleY,
+          duration: 0.85,
+          ease: 'expo.inOut',
+          onComplete: () => {
+            // Instantly show the navbar logo at the exact same pixel position
+            navTarget.style.opacity = '1';
+            setIntroVisible(false);
+          },
+        });
+      } else {
+        gsap.to(overlay, {
+          opacity: 0,
+          duration: 0.5,
+          onComplete: () => setIntroVisible(false),
+        });
+      }
+    });
 
     return () => {
-      window.clearTimeout(startTimer);
-      window.clearTimeout(finishTimer);
+      tl.kill();
     };
   }, []);
 
@@ -261,9 +330,8 @@ export default function App() {
   return (
     <>
       <div
-        className={`site-shell${introVisible ? (introFlying ? ' is-intro-revealing' : ' is-intro-covered') : ''}`}
-        inert={introVisible}
-        aria-hidden={introVisible}
+        className="site-shell"
+        style={{ opacity: introVisible ? 0 : 1 }}
       >
         <Header
           isScrolled={headerScrolled}
@@ -342,10 +410,21 @@ export default function App() {
         />
       </div>
 
+      {/* Cinematic Intro Splash Overlay */}
       {introVisible && (
-        <div className={`logo-splash${introFlying ? ' is-flying' : ''}`} role="status" aria-label="Empire Group">
-          <div className="logo-splash-lockup" ref={introLogoRef}>
-            <img src="/Empire%20Group%20White%20Logo.png" alt="" />
+        <div
+          ref={introOverlayRef}
+          className="logo-splash"
+          role="status"
+          aria-label="Empire Group"
+        >
+          <div ref={introGlowRef} className="logo-splash-glow" aria-hidden="true" />
+          <div className="logo-splash-lockup">
+            <img
+              ref={introLogoImgRef}
+              src="/Empire%20Group%20White%20Logo.png"
+              alt="Empire Group"
+            />
           </div>
         </div>
       )}
